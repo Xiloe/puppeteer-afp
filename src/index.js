@@ -140,14 +140,7 @@ const protectPage = (page, options = {}) => {
                                     else if (args[0] === 3414) return 24;
                                     else if (args[0] === 36348) return 30;
                                     else if (args[0] === 7936) return 'WebKit';
-                                    else if (args[0] === 37445)
-                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['37445']                      : config.random.item([
-                                            'Google Inc.',
-                                            'Google Inc. (Chromium)',
-                                            'Google Inc. (Intel)',
-                                            'Google Inc. (AMD)',
-                                            'Google Inc. (Apple)',
-                                        ]);
+                                    else if (args[0] === 37445) return 'Apple Inc.';
                                     else if (args[0] === 7937) return 'WebKit WebGL';
                                     else if (args[0] === 3379)
                                         return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3378']                      : config.random.number([14, 15]);
