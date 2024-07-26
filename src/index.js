@@ -166,7 +166,7 @@ const protectPage = (page, options = {}) => {
                                     else if (args[0] === 33901)
                                         return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['33901']                                        : config.random.float([0, 10, 11, 12, 13]);
                                     else if (args[0] === 37445)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['37445']                                        : "Google Inc.";
+                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['37445']                                        : 'Google Inc.';
                                     else if (args[0] === 37446)
                                         return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['37446']                                        : config.random.item(['Graphics', 'HD Graphics', 'Intel(R) HD Graphics']);
                                     else if (args[0] === 7938)
