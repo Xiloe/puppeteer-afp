@@ -5,7 +5,6 @@
  * @return {object}
  */
 const protectPage = (page, options = {}) => {
-
     page.evaluateOnNewDocument(
         (options) => {
             window.afpOptions = options;
@@ -15,18 +14,23 @@ const protectPage = (page, options = {}) => {
             const noisify = (canvas, context) => {
                 if (context) {
                     const shift = {
-                        r: window.afpOptions.options.canvasRgba                        ? window.afpOptions.options.canvasRgba[0]                        : Math.floor(Math.random() * 10) - 5,
-                        g: window.afpOptions.options.canvasRgba                        ? window.afpOptions.options.canvasRgba[1]                        : Math.floor(Math.random() * 10) - 5,
-                        b: window.afpOptions.options.canvasRgba                        ? window.afpOptions.options.canvasRgba[2]                        : Math.floor(Math.random() * 10) - 5,
-                        a: window.afpOptions.options.canvasRgba                        ? window.afpOptions.options.canvasRgba[3]                        : Math.floor(Math.random() * 10) - 5,
+                        r: window.afpOptions.options.canvasRgba              ? window.afpOptions.options.canvasRgba[0]              : Math.floor(Math.random() * 10) - 5,
+                        g: window.afpOptions.options.canvasRgba              ? window.afpOptions.options.canvasRgba[1]              : Math.floor(Math.random() * 10) - 5,
+                        b: window.afpOptions.options.canvasRgba              ? window.afpOptions.options.canvasRgba[2]              : Math.floor(Math.random() * 10) - 5,
+                        a: window.afpOptions.options.canvasRgba              ? window.afpOptions.options.canvasRgba[3]              : Math.floor(Math.random() * 10) - 5,
                     };
                     const width = canvas.width;
                     const height = canvas.height;
 
                     if (width && height) {
-                        const imageData = getImageData.apply(context, [0, 0, width, height]);
+                        const imageData = getImageData.apply(context, [
+                            0,
+                            0,
+                            width,
+                            height,
+                        ]);
 
-                        for (let i = 0; i < height; i++) 
+                        for (let i = 0; i < height; i++)
                             for (let j = 0; j < width; j++) {
                                 const n = i * (width * 4) + j * 4;
                                 imageData.data[n + 0] = imageData.data[n + 0] + shift.r;
@@ -34,28 +38,33 @@ const protectPage = (page, options = {}) => {
                                 imageData.data[n + 2] = imageData.data[n + 2] + shift.b;
                                 imageData.data[n + 3] = imageData.data[n + 3] + shift.a;
                             }
-                    
 
                         context.putImageData(imageData, 0, 0);
                     }
                 }
             };
 
-            HTMLCanvasElement.prototype.toBlob = new Proxy(HTMLCanvasElement.prototype.toBlob, {
-                apply(target, self, args) {
-                    noisify(self, self.getContext('2d'));
+            HTMLCanvasElement.prototype.toBlob = new Proxy(
+                HTMLCanvasElement.prototype.toBlob,
+                {
+                    apply(target, self, args) {
+                        noisify(self, self.getContext('2d'));
 
-                    return Reflect.apply(target, self, args);
+                        return Reflect.apply(target, self, args);
+                    },
                 },
-            });
+            );
 
-            HTMLCanvasElement.prototype.toDataURL = new Proxy(HTMLCanvasElement.prototype.toDataURL, {
-                apply(target, self, args) {
-                    noisify(self, self.getContext('2d'));
+            HTMLCanvasElement.prototype.toDataURL = new Proxy(
+                HTMLCanvasElement.prototype.toDataURL,
+                {
+                    apply(target, self, args) {
+                        noisify(self, self.getContext('2d'));
 
-                    return Reflect.apply(target, self, args);
+                        return Reflect.apply(target, self, args);
+                    },
                 },
-            });
+            );
 
             CanvasRenderingContext2D.prototype.getImageData = new Proxy(
                 CanvasRenderingContext2D.prototype.getImageData,
@@ -65,7 +74,7 @@ const protectPage = (page, options = {}) => {
 
                         return Reflect.apply(target, self, args);
                     },
-                }
+                },
             );
 
             //Webgl def
@@ -80,9 +89,8 @@ const protectPage = (page, options = {}) => {
                     },
                     number: (power) => {
                         const tmp = [];
-                        for (let i = 0; i < power.length; i++) 
+                        for (let i = 0; i < power.length; i++)
                             tmp.push(Math.pow(2, power[i]));
-                    
 
                         return config.random.item(tmp);
                     },
@@ -108,12 +116,14 @@ const protectPage = (page, options = {}) => {
                 spoof: {
                     webgl: {
                         buffer: (target) => {
-                            const proto = target.prototype ? target.prototype : target.__proto__;
+                            const proto = target.prototype                ? target.prototype                : target.__proto__;
 
                             proto.bufferData = new Proxy(proto.bufferData, {
                                 apply(target, self, args) {
-                                    const index = Math.floor(config.random.value() * args[1].length);
-                                    const noise =                                    args[1][index] !== undefined ? 0.1 * config.random.value() * args[1][index] : 0;
+                                    const index = Math.floor(
+                                        config.random.value() * args[1].length,
+                                    );
+                                    const noise =                    args[1][index] !== undefined                      ? 0.1 * config.random.value() * args[1][index]                      : 0;
 
                                     args[1][index] = args[1][index] + noise;
 
@@ -122,7 +132,7 @@ const protectPage = (page, options = {}) => {
                             });
                         },
                         parameter: (target) => {
-                            const proto = target.prototype ? target.prototype : target.__proto__;
+                            const proto = target.prototype                ? target.prototype                : target.__proto__;
 
                             proto.getParameter = new Proxy(proto.getParameter, {
                                 apply(target, receiver, args) {
@@ -130,53 +140,63 @@ const protectPage = (page, options = {}) => {
                                     else if (args[0] === 3414) return 24;
                                     else if (args[0] === 36348) return 30;
                                     else if (args[0] === 7936) return 'WebKit';
+                                    else if (args[0] === 37445)
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['37445']                      : config.random.item([
+                                            'Google Inc.',
+                                            'Google Inc. (Chromium)',
+                                            'Google Inc. (Intel)',
+                                            'Google Inc. (AMD)',
+                                            'Google Inc. (Apple)',
+                                        ]);
                                     else if (args[0] === 7937) return 'WebKit WebGL';
                                     else if (args[0] === 3379)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['3378']                                        : config.random.number([14, 15]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3378']                      : config.random.number([14, 15]);
                                     else if (args[0] === 36347)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['36347']                                        : config.random.number([12, 13]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['36347']                      : config.random.number([12, 13]);
                                     else if (args[0] === 34076)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['34076']                                        : config.random.number([14, 15]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['34076']                      : config.random.number([14, 15]);
                                     else if (args[0] === 34024)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['34024']                                        : config.random.number([14, 15]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['34024']                      : config.random.number([14, 15]);
                                     else if (args[0] === 3386)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['3386']                                        : config.random.int([13, 14, 15]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3386']                      : config.random.int([13, 14, 15]);
                                     else if (args[0] === 3413)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['3413']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3413']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 3412)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['3412']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3412']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 3411)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['3411']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3411']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 3410)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['3410']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['3410']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 34047)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['34047']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['34047']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 34930)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['34930']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['34930']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 34921)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['34921']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['34921']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 35660)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['35660']                                        : config.random.number([1, 2, 3, 4]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['35660']                      : config.random.number([1, 2, 3, 4]);
                                     else if (args[0] === 35661)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['35661']                                        : config.random.number([4, 5, 6, 7, 8]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['35661']                      : config.random.number([4, 5, 6, 7, 8]);
                                     else if (args[0] === 36349)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['36349']                                        : config.random.number([10, 11, 12, 13]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['36349']                      : config.random.number([10, 11, 12, 13]);
                                     else if (args[0] === 33902)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['33902']                                        : config.random.float([0, 10, 11, 12, 13]);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['33902']                      : config.random.float([0, 10, 11, 12, 13]);
                                     else if (args[0] === 33901)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['33901']                                        : config.random.float([0, 10, 11, 12, 13]);
-                                    else if (args[0] === 37445)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['37445']                                        : 'Google Inc.';
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['33901']                      : config.random.float([0, 10, 11, 12, 13]);
                                     else if (args[0] === 37446)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['37446']                                        : config.random.item(['Graphics', 'HD Graphics', 'Intel(R) HD Graphics']);
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['37446']                      : config.random.item([
+                                            'Graphics',
+                                            'HD Graphics',
+                                            'Intel(R) HD Graphics',
+                                        ]);
                                     else if (args[0] === 7938)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['7938']                                        : config.random.item([
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['7938']                      : config.random.item([
                                             'WebGL 1.0',
                                             'WebGL 1.0 (OpenGL)',
                                             'WebGL 1.0 (OpenGL Chromium)',
                                         ]);
                                     else if (args[0] === 35724)
-                                        return window.afpOptions.options.webglData                                        ? window.afpOptions.options.webglData['35724']                                        : config.random.item([
+                                        return window.afpOptions.options.webglData                      ? window.afpOptions.options.webglData['35724']                      : config.random.item([
                                             'WebGL',
                                             'WebGL GLSL',
                                             'WebGL GLSL ES',
@@ -200,42 +220,54 @@ const protectPage = (page, options = {}) => {
             const rand = {
                 noise: () => {
                     const SIGN = Math.random() < Math.random() ? -1 : 1;
-                    return window.afpOptions.options.fontFingerprint                    ? window.afpOptions.options.fontFingerprint.noise                    : Math.floor(Math.random() + SIGN * Math.random());
+                    return window.afpOptions.options.fontFingerprint            ? window.afpOptions.options.fontFingerprint.noise            : Math.floor(Math.random() + SIGN * Math.random());
                 },
                 sign: () => {
                     const tmp = [-1, -1, -1, -1, -1, -1, +1, -1, -1, -1];
                     const index = Math.floor(Math.random() * tmp.length);
-                    return window.afpOptions.options.fontFingerprint                    ? window.afpOptions.options.fontFingerprint.sign                    : tmp[index];
+                    return window.afpOptions.options.fontFingerprint            ? window.afpOptions.options.fontFingerprint.sign            : tmp[index];
                 },
             };
 
             Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-                get: new Proxy(Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight').get, {
-                    apply(target, self, args) {
-                        try {
-                            const height = Math.floor(self.getBoundingClientRect().height);
-                            const valid = height && rand.sign() === 1;
-                            const result = valid ? height + rand.noise() : height;
+                get: new Proxy(
+                    Object.getOwnPropertyDescriptor(
+                        HTMLElement.prototype,
+                        'offsetHeight',
+                    ).get,
+                    {
+                        apply(target, self, args) {
+                            try {
+                                const height = Math.floor(self.getBoundingClientRect().height);
+                                const valid = height && rand.sign() === 1;
+                                const result = valid ? height + rand.noise() : height;
 
-                            return result;
-                        }
-                        catch (e) {
-                        //return Reflect.apply(target, self, args);
-                        }
+                                return result;
+                            }
+                            catch (e) {
+                                //return Reflect.apply(target, self, args);
+                            }
+                        },
                     },
-                }),
+                ),
             });
 
             Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-                get: new Proxy(Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth').get, {
-                    apply(target, self, args) {
-                        const width = Math.floor(self.getBoundingClientRect().width);
-                        const valid = width && rand.sign() === 1;
-                        const result = valid ? width + rand.noise() : width;
+                get: new Proxy(
+                    Object.getOwnPropertyDescriptor(
+                        HTMLElement.prototype,
+                        'offsetWidth',
+                    ).get,
+                    {
+                        apply(target, self, args) {
+                            const width = Math.floor(self.getBoundingClientRect().width);
+                            const valid = width && rand.sign() === 1;
+                            const result = valid ? width + rand.noise() : width;
 
-                        return result;
+                            return result;
+                        },
                     },
-                }),
+                ),
             });
 
             //Aud def
@@ -251,9 +283,11 @@ const protectPage = (page, options = {}) => {
 
                                 for (let i = 0; i < results_1.length; i += 100) {
                                     const index = Math.floor(
-                                        (window.afpOptions.options.audioFingerprint                                        ? window.afpOptions.options.audioFingerprint.getChannelDataIndexRandom                                        : Math.random()) * i
+                                        (window.afpOptions.options.audioFingerprint                      ? window.afpOptions.options.audioFingerprint
+                                            .getChannelDataIndexRandom                      : Math.random()) * i,
                                     );
-                                    results_1[index] =                                    results_1[index] +                                    (window.afpOptions.options.audioFingerprint                                        ? window.afpOptions.options.audioFingerprint.getChannelDataResultRandom                                        : Math.random()) *                                        0.0000001;
+                                    results_1[index] =                    results_1[index] +                    (window.afpOptions.options.audioFingerprint                      ? window.afpOptions.options.audioFingerprint
+                                        .getChannelDataResultRandom                      : Math.random()) *                      0.0000001;
                                 }
                             }
 
@@ -262,33 +296,36 @@ const protectPage = (page, options = {}) => {
                     });
                 },
                 createAnalyser: function (e) {
-                    e.prototype.__proto__.createAnalyser = new Proxy(e.prototype.__proto__.createAnalyser, {
-                        apply(target, self, args) {
-                            const results_2 = Reflect.apply(target, self, args);
+                    e.prototype.__proto__.createAnalyser = new Proxy(
+                        e.prototype.__proto__.createAnalyser,
+                        {
+                            apply(target, self, args) {
+                                const results_2 = Reflect.apply(target, self, args);
 
-                            results_2.__proto__.getFloatFrequencyData = new Proxy(
-                                results_2.__proto__.getFloatFrequencyData,
-                                {
-                                    apply(target, self, args) {
-                                        const results_3 = Reflect.apply(target, self, args);
+                                results_2.__proto__.getFloatFrequencyData = new Proxy(
+                                    results_2.__proto__.getFloatFrequencyData,
+                                    {
+                                        apply(target, self, args) {
+                                            const results_3 = Reflect.apply(target, self, args);
 
-                                        for (let i = 0; i < arguments[0].length; i += 100) {
-                                            const index = Math.floor(
-                                                (window.afpOptions.options.audioFingerprint                                                ? window.afpOptions.options.audioFingerprint
-                                                    .createAnalyserIndexRandom                                                : Math.random()) * i
-                                            );
-                                            arguments[0][index] =                                            arguments[0][index] +                                            (window.afpOptions.options.audioFingerprint                                                ? window.afpOptions.options.audioFingerprint
-                                                .createAnalyserResultRandom                                                : Math.random()) *                                                0.1;
-                                        }
+                                            for (let i = 0; i < arguments[0].length; i += 100) {
+                                                const index = Math.floor(
+                                                    (window.afpOptions.options.audioFingerprint                            ? window.afpOptions.options.audioFingerprint
+                                                        .createAnalyserIndexRandom                            : Math.random()) * i,
+                                                );
+                                                arguments[0][index] =                          arguments[0][index] +                          (window.afpOptions.options.audioFingerprint                            ? window.afpOptions.options.audioFingerprint
+                                                    .createAnalyserResultRandom                            : Math.random()) *                            0.1;
+                                            }
 
-                                        return results_3;
+                                            return results_3;
+                                        },
                                     },
-                                }
-                            );
+                                );
 
-                            return results_2;
+                                return results_2;
+                            },
                         },
-                    });
+                    );
                 },
             };
 
@@ -296,22 +333,23 @@ const protectPage = (page, options = {}) => {
             context.createAnalyser(AudioContext);
             context.createAnalyser(OfflineAudioContext);
             // Web RTC
-            if (window.afpOptions.options.webRTCProtect) navigator.mediaDevices.getUserMedia =            navigator.webkitGetUserMedia =            navigator.mozGetUserMedia =            navigator.getUserMedia =            webkitRTCPeerConnection =            RTCPeerConnection =            MediaStreamTrack =                undefined;
+            if (window.afpOptions.options.webRTCProtect)
+                navigator.mediaDevices.getUserMedia =          navigator.webkitGetUserMedia =          navigator.mozGetUserMedia =          navigator.getUserMedia =          webkitRTCPeerConnection =          RTCPeerConnection =          MediaStreamTrack =            undefined;
 
             Object.defineProperty(navigator, 'deviceMemory', {
                 get: () =>
-                    window.afpOptions.options.deviceMemory                    ? window.afpOptions.options.deviceMemory                    : Math.floor(Math.random() * 8) + 4,
+                    window.afpOptions.options.deviceMemory            ? window.afpOptions.options.deviceMemory            : Math.floor(Math.random() * 8) + 4,
             });
 
             window.chrome = { runtime: {} };
 
-            window.navigator.chrome = {runtime: {}, };
+            window.navigator.chrome = { runtime: {} };
             //remove webdriver
             const newProto = navigator.__proto__;
             delete newProto.webdriver;
             navigator.__proto__ = newProto;
         },
-        { options }
+        { options },
     );
     return page;
 };
