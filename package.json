@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pavlealeksic/puppeteer-afp.git"
+    "url": "git+https://github.com/xiloe/puppeteer-afp.git"
   },
   "keywords": [
     "npm",
@@ -31,9 +31,9 @@
   "author": "Pavle Aleksic <pavlealeksic@live.com> (https://twitter.com/aleksicpaja)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pavlealeksic/puppeteer-afp/issues"
+    "url": "https://github.com/xiloe/puppeteer-afp/issues"
   },
-  "homepage": "https://github.com/pavlealeksic/puppeteer-afp#readme",
+  "homepage": "https://github.com/xiloe/puppeteer-afp#readme",
   "devDependencies": {
     "chai": "^4.2.0",
     "coveralls": "^3.0.3",
